@@ -11,13 +11,54 @@ OUTPUT_DIR="script_output_small"
 # Size after resize, 960x540 == "Half HD"
 SIZE_HORIZONTAL=960
 SIZE_VERTICAL=540
-
+            
 AUDIO_DEFAULT="-c:a aac -b:a 160k"
 
 # Quality of resized video
 # CRF, Constant Rate Factor: 0-51 (Best - Worst), Default: 23
 #   17 should be "visually lossless"
 QUALITY=17
+
+
+
+# Handle arguments
+# ----------------------------------------------------------------------
+SCRIPT_NAME=$(basename "${BASH_SOURCE[0]}")
+
+usage() {
+    echo "Loop over all files in a directory, and convert video files to smaller versions. "
+    echo "Default is \"half HD\" 960x540 mp4 (x264)"
+    echo
+    echo "Usage:"
+    echo "   ${SCRIPT_NAME} [--force-deinterlace]"
+    echo
+    echo "   --1080p   Set the resulting resolution to 1920x1080"
+    echo
+    exit 1
+}
+
+OPTIONS=$(getopt -o 'h' --long 'help,1080p' -n "$SCRIPT_NAME" -- "$@")
+if [ $? != 0 ]; then
+    echo "Failed parsing options" >&2
+fi
+
+eval set -- "$OPTIONS"
+while true; do
+    case "$1" in
+        '--1080p')
+            SIZE_HORIZONTAL=1920
+            SIZE_VERTICAL=1080
+            shift
+            ;;
+        '-h'|'--help') usage;;
+        '--') shift; break;;
+        ,*) break;;
+    esac
+done
+
+echo "Target resolution is set to: ${SIZE_HORIZONTAL}x${SIZE_VERTICAL}"
+
+
 
 # Start
 # ----------------------------------------------------------------------
