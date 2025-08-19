@@ -99,6 +99,7 @@ for F in *.avi *.AVI *.mpeg *.MPEG *.mpg *.MPG *.mod *.MOD *.mov *.MOV *.flv *.F
         ROTATION=$(mediainfo --Inform="Video;%Rotation%" "${F}")
         SCALE=$(mediainfo --Inform="Video;%Width%:%Height%" "${F}")
         ORIG_FRAMERATE=$(mediainfo --Inform="Video;%FrameRate%" "${F}")
+        ORIG_FRAMERATEMODE=$(mediainfo --Inform="Video;%FrameRate_Mode/String%" "${F}")
         FRAMERATE=$(float_to_int "${ORIG_FRAMERATE}")
         VIDEO_REENCODING_NEEDED=false
 
@@ -119,6 +120,9 @@ for F in *.avi *.AVI *.mpeg *.MPEG *.mpg *.MPG *.mod *.MOD *.mov *.MOV *.flv *.F
 
         if [[ "${ORIG_FRAMERATE}" != *".000"* ]]; then
             echo "NOTE: Input frame rate is not an even integer! Frame rate will be changed: ${ORIG_FRAMERATE} -> ${FRAMERATE}"
+            VIDEO_REENCODING_NEEDED=true
+        elif [[ "${ORIG_FRAMERATEMODE}" == "Variable" ]]; then
+            echo "NOTE: Input frame rate mode is variable! Frame rate mode will be changed to constant"
             VIDEO_REENCODING_NEEDED=true
         fi
 

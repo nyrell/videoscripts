@@ -11,7 +11,7 @@ OUTPUT_DIR="script_output_small"
 # Size after resize, 960x540 == "Half HD"
 SIZE_HORIZONTAL=960
 SIZE_VERTICAL=540
-            
+
 AUDIO_DEFAULT="-c:a aac -b:a 160k"
 
 # Quality of resized video
@@ -48,6 +48,7 @@ while true; do
         '--1080p')
             SIZE_HORIZONTAL=1920
             SIZE_VERTICAL=1080
+            OUTPUT_DIR="${OUTPUT_DIR}_1080"
             shift
             ;;
         '-h'|'--help') usage;;
@@ -88,7 +89,7 @@ for F in *.mp4 *.MP4 *.mts *.MTS *.mov *.MOV ; do
         WIDTH=$(mediainfo --Inform="Video;%Width%" "${F}")
         HEIGHT=$(mediainfo --Inform="Video;%Height%" "${F}")
         VIDEO_CODEC=$(mediainfo --Inform="Video;%CodecID%" "${F}")
-        
+
         ROTATION=$(mediainfo --Inform="Video;%Rotation%" "${F}")
         ORIG_FRAMERATE=$(mediainfo --Inform="Video;%FrameRate%" "${F}")
         FRAMERATE=$(float_to_int ${ORIG_FRAMERATE})
@@ -112,7 +113,7 @@ for F in *.mp4 *.MP4 *.mts *.MTS *.mov *.MOV ; do
             echo "NOTE: Detected audio codec \"${AUDIO_CODEC}\". Converting to AAC."
             AUDIO=${AUDIO_DEFAULT}
         fi
-        
+
         echo
         bash -xc "ffmpeg -loglevel warning -i \"$F\" -filter:v $SCALE -vcodec libx264 -r $FRAMERATE -crf $QUALITY ${AUDIO} \"${OUTPUT_DIR}/${F%.*}.mp4\""
         echo
