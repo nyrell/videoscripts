@@ -19,6 +19,10 @@ AUDIO_DEFAULT="-c:a aac -b:a 160k"
 #   17 should be "visually lossless"
 QUALITY=17
 
+# Keyframe interval in seconds. Lower = finer timeline scrubbing, larger files.
+# A keyframe every 1 second means players can seek at 1-second granularity.
+KEYFRAME_INTERVAL_SEC=1
+
 
 
 # Handle arguments
@@ -93,6 +97,7 @@ for F in *.mp4 *.MP4 *.mts *.MTS *.mov *.MOV ; do
         ROTATION=$(mediainfo --Inform="Video;%Rotation%" "${F}")
         ORIG_FRAMERATE=$(mediainfo --Inform="Video;%FrameRate%" "${F}")
         FRAMERATE=$(float_to_int ${ORIG_FRAMERATE})
+        GOP=$((FRAMERATE * KEYFRAME_INTERVAL_SEC))
         AUDIO_CODEC=$(mediainfo --Inform="Audio;%Format/String%" "${F}")
 
         echo "Resolution=${WIDTH}x${HEIGHT}, Rotation: ${ROTATION} deg, Frame rate=${ORIG_FRAMERATE} FPS, Video=${VIDEO_CODEC}, Audio=${AUDIO_CODEC}"
@@ -115,7 +120,7 @@ for F in *.mp4 *.MP4 *.mts *.MTS *.mov *.MOV ; do
         fi
 
         echo
-        bash -xc "ffmpeg -loglevel warning -i \"$F\" -filter:v $SCALE -vcodec libx264 -r $FRAMERATE -crf $QUALITY ${AUDIO} \"${OUTPUT_DIR}/${F%.*}.mp4\""
+        bash -xc "ffmpeg -loglevel warning -i \"$F\" -filter:v $SCALE -vcodec libx264 -r $FRAMERATE -g $GOP -crf $QUALITY ${AUDIO} \"${OUTPUT_DIR}/${F%.*}.mp4\""
         echo
     fi
 done
