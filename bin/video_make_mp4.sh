@@ -11,6 +11,12 @@ OUTPUT_DIR="script_output_mp4"
 #   17 should be "visually lossless"
 QUALITY=17
 
+# Keyframe interval in seconds. Lower = finer timeline scrubbing, larger files.
+# A keyframe every 1 second means players can seek at 1-second granularity.
+# NOTE: Only applies when the video is re-encoded. When this script decides no
+#       re-encode is needed (-c:v copy), the original keyframes are kept as-is.
+KEYFRAME_INTERVAL_SEC=1
+
 
 
 # Handle arguments
@@ -101,6 +107,7 @@ for F in *.avi *.AVI *.mpeg *.MPEG *.mpg *.MPG *.mod *.MOD *.mov *.MOV *.flv *.F
         ORIG_FRAMERATE=$(mediainfo --Inform="Video;%FrameRate%" "${F}")
         ORIG_FRAMERATEMODE=$(mediainfo --Inform="Video;%FrameRate_Mode/String%" "${F}")
         FRAMERATE=$(float_to_int "${ORIG_FRAMERATE}")
+        GOP=$((FRAMERATE * KEYFRAME_INTERVAL_SEC))
         VIDEO_REENCODING_NEEDED=false
 
         if [[ "$ROTATION" == *"90"* ]]; then
@@ -141,7 +148,7 @@ for F in *.avi *.AVI *.mpeg *.MPEG *.mpg *.MPG *.mod *.MOD *.mov *.MOV *.flv *.F
             VIDEO_REENCODING_NEEDED=true
         fi
 
-        VIDEO_RECODE_PARAMS="${MORE_PARAMS} -filter:v \"scale=${SCALE}${VF_DEINT}\" -vcodec libx264 -r $FRAMERATE -crf $QUALITY"
+        VIDEO_RECODE_PARAMS="${MORE_PARAMS} -filter:v \"scale=${SCALE}${VF_DEINT}\" -vcodec libx264 -r $FRAMERATE -g $GOP -crf $QUALITY"
         if [[ "${VIDEO_CODEC}" == *"AVC"* && "${VIDEO_REENCODING_NEEDED}" == false ]]; then
             echo "NOTE: Detected video codec \"${VIDEO_CODEC}\". No re-encode needed!"
             VIDEO="-c:v copy"
